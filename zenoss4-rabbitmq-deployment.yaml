@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: /usr/local/bin/kompose convert -f docker-compose.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: zenoss4-rabbitmq
+  name: zenoss4-rabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: zenoss4-rabbitmq
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: /usr/local/bin/kompose convert -f docker-compose.yml
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/dockerzenoss4_back-tier: "true"
+        io.kompose.service: zenoss4-rabbitmq
+    spec:
+      containers:
+      - env:
+        - name: RABBITMQ_DEFAULT_PASS
+          value: zenoss
+        - name: RABBITMQ_DEFAULT_USER
+          value: zenoss
+        - name: RABBITMQ_DEFAULT_VHOST
+          value: /zenoss
+        image: rabbitmq:3.6
+        imagePullPolicy: ""
+        name: zenoss4-rabbitmq
+        ports:
+        - containerPort: 5672
+        resources: {}
+        volumeMounts:
+        #- mountPath: /etc/localtime
+        #  name: zenoss4-rabbitmq-claim0
+        #  readOnly: true
+        - mountPath: /var/lib/rabbitmq
+          name: zenoss4-rabbitmq-claim1
+      hostname: zenoss4-rabbitmq
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+      #- name: zenoss4-rabbitmq-claim0
+      #  persistentVolumeClaim:
+      #    claimName: zenoss4-rabbitmq-claim0
+      #    readOnly: true
+      - name: zenoss4-rabbitmq-claim1
+        persistentVolumeClaim:
+          claimName: zenoss4-rabbitmq-claim1
+          readOnly: false
+status: {}

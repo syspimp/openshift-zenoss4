@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: /usr/local/bin/kompose convert -f docker-compose.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: zenoss4-mariadb
+  name: zenoss4-mariadb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: zenoss4-mariadb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: /usr/local/bin/kompose convert -f docker-compose.yml
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/dockerzenoss4_back-tier: "true"
+        io.kompose.service: zenoss4-mariadb
+    spec:
+      containers:
+      - env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: zenoss
+        #image: mariadb:5.5
+        image: syspimp/zenoss4-mariadb:latest
+        imagePullPolicy: ""
+        name: zenoss4-mariadb
+        ports:
+        - containerPort: 3306
+        resources: {}
+        volumeMounts:
+#        - mountPath: /docker-entrypoint-initdb.d/
+#          name: zenoss4-mariadb-init
+#          readOnly: true
+        - mountPath: /etc/mysql/conf.d/
+          name: zenoss4-mariadb-config
+          readOnly: true
+#        - mountPath: /docker-entrypoint-initdb.d/
+#          name: zenoss4-mariadb-claim0
+#          readOnly: true
+#        - mountPath: /etc/mysql/conf.d
+#          name: zenoss4-mariadb-claim1
+#          readOnly: true
+#        - mountPath: /tmp/initdb.d
+#          name: zenoss4-mariadb-initdb
+#          readOnly: true
+        - mountPath: /var/lib/mysql
+          name: zenoss4-mariadb-varlib
+#        - mountPath: /var/log/
+#          name: zenoss4-mariadb-claim4
+      hostname: zenoss4-mariadb
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+#      - name: zenoss4-mariadb-claim0
+#        persistentVolumeClaim:
+#          claimName: zenoss4-mariadb-claim0
+#          readOnly: true
+#      - name: zenoss4-mariadb-claim1
+#        persistentVolumeClaim:
+#          claimName: zenoss4-mariadb-claim1
+#          readOnly: true
+#      - name: zenoss4-mariadb-initdb
+#        persistentVolumeClaim:
+#          claimName: zenoss4-mariadb-initdb
+#          readOnly: true
+      - name: zenoss4-mariadb-varlib
+        persistentVolumeClaim:
+          claimName: zenoss4-mariadb-varlib
+#      - name: zenoss4-mariadb-claim4
+#        persistentVolumeClaim:
+#          claimName: zenoss4-mariadb-claim4
+#      - configMap:
+#          defaultMode: 420
+#          name: zenoss4-mariadb-init
+#        name: zenoss4-mariadb-init
+      - configMap:
+          defaultMode: 420
+          name: zenoss4-mariadb-config
+        name: zenoss4-mariadb-config
+status: {}

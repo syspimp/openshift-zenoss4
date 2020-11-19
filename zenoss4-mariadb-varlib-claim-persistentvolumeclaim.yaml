@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: zenoss4-mariadb-varlib
+  name: zenoss4-mariadb-varlib
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20480Mi
+#  storageClassName: managed-nfs-storage
+status: {}

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: /usr/local/bin/kompose convert -f docker-compose.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: zenoss4-redis
+  name: zenoss4-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: zenoss4-redis
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: /usr/local/bin/kompose convert -f docker-compose.yml
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/dockerzenoss4_back-tier: "true"
+        io.kompose.service: zenoss4-redis
+    spec:
+      containers:
+      - image: redis:3.0-alpine
+        imagePullPolicy: ""
+        name: zenoss4-redis
+        ports:
+        - containerPort: 6379
+        resources: {}
+        volumeMounts:
+        - mountPath: /data
+          name: zenoss4-redis-claim0
+      hostname: zenoss4-redis
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+      - name: zenoss4-redis-claim0
+        persistentVolumeClaim:
+          claimName: zenoss4-redis-claim0
+status: {}

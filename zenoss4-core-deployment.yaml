@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: /usr/local/bin/kompose convert -f docker-compose.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: zenoss4-core
+  name: zenoss4-core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: zenoss4-core
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: /usr/local/bin/kompose convert -f docker-compose.yml
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/dockerzenoss4_back-tier: "true"
+        io.kompose.service: zenoss4-core
+    spec:
+      containers:
+#      - image: mcroth/docker-zenoss4
+      - image: syspimp/zenoss4-core
+        imagePullPolicy: ""
+        name: zenoss4-core
+        ports:
+        - containerPort: 8080
+        resources: {}
+      hostname: zenoss4-core
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes: null
+status: {}

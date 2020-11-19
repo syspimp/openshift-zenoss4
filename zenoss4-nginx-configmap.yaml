@@ -1,0 +1,16 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: nginx-config
+  namespace: monitoring
+data:
+  default.conf: |2
+    server {
+      listen 80;
+      client_max_body_size 20M;
+      location / {
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   Host      $http_host;
+        proxy_pass         http://zenoss4-core:8080;
+      }
+    }

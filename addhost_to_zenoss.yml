@@ -1,0 +1,249 @@
+- name: add a host to zenoss in openshift
+  hosts: localhost
+  vars:
+    ocpclustername: dataylor3
+    ocpbaseurl: southeast.aws.redhat-demo.com
+    ocpproject: monitoring
+    onhere: "http://zenoss4-nginx-{{ ocpproject }}.apps.{{ ocpclustername }}.{{ ocpbaseurl }}/zport/dmd/device_router"
+    usingthis: admin
+    andthis: zenoss
+    rootorg: Server
+    zenossorgs:
+      - name: Satellite
+        org: Linux
+        desc: Satellite Infra
+      - name: Server
+        org: Linux/Satellite
+        desc: Satellite Server
+      - name: Capsules
+        org: Linux/Satellite
+        desc: Satellite Capsules
+      - name: LBs
+        org: Linux/Satellite
+        desc: Satellite Load Balancers
+      - name: Ansible Tower
+        org: Linux
+        desc: Ansible Tower Infra
+      - name: Masters
+        org: Linux/Ansible Tower
+        desc: Ansible Tower Masters
+      - name: Workers
+        org: Linux/Ansible Tower
+        desc: Ansible Tower Workers
+      - name: NFS Servers
+        org: Linux
+        desc: NFS Server for Openshift
+      - name: Openshift
+        org: Linux
+        desc: Openshift Infra
+      - name: Masters
+        org: Linux/Openshift
+        desc: Openshift Masters
+      - name: Workers
+        org: Linux/Openshift
+        desc: Openshift Workers
+    addme:
+    - host: 11.22.33.234
+      org: Linux/Satellite/Capsules
+    - host: 11.22.33.9
+      org: Linux/Satellite/LBs
+    - host: 11.22.33.102 
+      org: Linux/Satellite/Server
+    - host: 11.22.33.77
+      org: Linux/Ansible Tower/Masters
+    - host: 11.22.33.170
+      org: Linux/NFS Servers
+#    - host: ip-10-0-161-53.ec2.internal
+#      org: Linux/Openshift/Masters
+#    - host: ip-10-0-168-24.ec2.internal
+#      org: Linux/Openshift/Workers
+#    - host: ip-10-0-147-28.ec2.internal
+#      org: Linux/Openshift/Masters
+#    - host: ip-10-0-153-227.ec2.internal
+#      org: Linux/Openshift/Workers
+#    - host: ip-10-0-143-110.ec2.internal
+#      org: Linux/Openshift/Masters
+#    - host: ip-10-0-143-239.ec2.internal
+#      org: Linux/Openshift/Workers
+
+    tothis: '/Server/Linux'
+  tasks:
+#  - set_fact:
+#      data: "{\"deviceName\":\"{{ item }}\",\"deviceClass\":\"{{ tothis }}\",\"collector\":\"localhost\",\"model\":true,\"title\":\"\",\"productionState\":\"1000\",\"priority\":\"3\",\"snmpCommunity\":\"\",\"snmpPort\":161,\"tag\":\"\",\"rackSlot\":\"\",\"serialNumber\":\"\",\"hwManufacturer\":\"\",\"hwProductName\":\"\",\"osManufacturer\":\"\",\"osProductName\":\"\",\"comments\":\"\"}"
+
+  - name: grab the output of oc get nodes
+    shell: oc get nodes
+    register: getnodes
+    delegate_to: localhost
+
+  - name: set worker facts
+    vars:
+      workers: []
+    set_fact:
+      workers: "{{ workers }} + ['{{ item.split(' ')[0] }}']"
+    when: "'worker' in item"
+    with_items: "{{ getnodes.stdout_lines }}"
+
+  - name: set master facts
+    vars:
+      masters: []
+    set_fact:
+      masters: "{{ masters }} + ['{{ item.split(' ')[0] }}']"
+    when: "'master' in item"
+    with_items: "{{ getnodes.stdout_lines }}"
+
+  - name: Create Org Nodes in Zenoss
+    uri:
+      url: "{{ onhere }}"
+      user: "{{ usingthis }}"
+      password: "{{ andthis }}"
+      method: POST
+#      body: "{"action":"DeviceRouter","method":"addNode","data":[{"id":"Openshift","description":"Openshift Cluster","type":"organizer","contextUid":"/zport/dmd/Devices/Server/Linux"}],"type":"rpc","tid":51}"
+      body:
+      - action: DeviceRouter
+        method: addNode
+        data:
+        - id: "{{ item.name }}"
+          description: "{{ item.desc }}"
+          type: organizer
+          contextUid: "/zport/dmd/Devices/{{ rootorg }}/{{ item.org }}"
+        tid: 51
+        type: rpc
+      force_basic_auth: yes
+      status_code: 200
+      body_format: json
+    loop: "{{ zenossorgs }}"
+
+  - name: Create Properties on Hosts in Zenoss
+    uri:
+      url: "{{ onhere }}"
+      user: "{{ usingthis }}"
+      password: "{{ andthis }}"
+      method: POST
+#      body: {"action":"DeviceRouter","method":"setZenProperty","data":[{"uid":"/zport/dmd/Devices/Server/Linux","zProperty":"zCommandUsername","value":"root"}],"type":"rpc","tid":26}
+#      body: {"action":"DeviceRouter","method":"setZenProperty","data":[{"uid":"/zport/dmd/Devices/Server/Linux","zProperty":"zKeyPath","value":"~/.ssh/id_rsa"}],"type":"rpc","tid":35}
+#      body: {"action":"DeviceRouter","method":"setZenProperty","data":[{"uid":"/zport/dmd/Devices/Server/Linux/Openshift","zProperty":"zCommandUsername","value":"core"}],"type":"rpc","tid":51}
+      body:
+      - action: DeviceRouter
+        method: setZenProperty
+        data:
+        - uid: "{{ item.uid }}"
+          zProperty: "{{ item.property }}"
+          value: "{{ item.value }}"
+        tid: 51
+        type: rpc
+      force_basic_auth: yes
+      status_code: 200
+      body_format: json
+    loop:
+    - uid: /zport/dmd/Devices/Server/Linux
+      property: zCommandUsername
+      value: root
+    - uid: /zport/dmd/Devices/Server/Linux
+      property: zKeyPath
+      value: "~/.ssh/id_rsa"
+    - uid: /zport/dmd/Devices/Server/Linux/Openshift
+      property: zCommandUsername
+      value: core
+
+  - name: Create a Host in Zenoss from Yaml
+    uri:
+      url: "{{ onhere }}"
+      user: "{{ usingthis }}"
+      password: "{{ andthis }}"
+      method: POST
+#      body: "{\"action\":\"DeviceRouter\",\"method\":\"addDevice\",\"data\":[{{ data }}], \"tid\":1}"
+      body:
+      - action: DeviceRouter
+        method: addDevice
+        data:
+        - deviceName: "{{ item.host }}"
+          deviceClass: "/{{ rootorg }}/{{ item.org }}"
+          collector: localhost
+          model: true
+          title: ""
+          productionState: 1000
+          priority: 3
+          snmpCommunity: RTO
+          snmpPort: 161
+          tag: ""
+          rackSlot: "aws"
+          serialNumber: "0"
+          hwManufacturer: "aws"
+          hwProductName: "aws"
+          osManufacturer: "Redhat"
+          osProductName: "Redhat"
+          comments: "added by ansible"
+        tid: 1
+      force_basic_auth: yes
+      status_code: 200
+      body_format: json
+    loop: "{{ addme }}"
+
+  - name: Create OCP Masters in Zenoss from oc output
+    uri:
+      url: "{{ onhere }}"
+      user: "{{ usingthis }}"
+      password: "{{ andthis }}"
+      method: POST
+#      body: "{\"action\":\"DeviceRouter\",\"method\":\"addDevice\",\"data\":[{{ data }}], \"tid\":1}"
+      body:
+      - action: DeviceRouter
+        method: addDevice
+        data:
+        - deviceName: "{{ item }}"
+          deviceClass: "/Server/Linux/Openshift/Masters"
+          collector: localhost
+          model: true
+          title: ""
+          productionState: 1000
+          priority: 3
+          snmpCommunity: RTO
+          snmpPort: 161
+          tag: ""
+          rackSlot: "aws"
+          serialNumber: "0"
+          hwManufacturer: "aws"
+          hwProductName: "aws"
+          osManufacturer: "Redhat"
+          osProductName: "Redhat"
+          comments: "added by ansible"
+        tid: 1
+      force_basic_auth: yes
+      status_code: 200
+      body_format: json
+    loop: "{{ masters }}"
+
+  - name: Create OCP Workers in Zenoss from oc output
+    uri:
+      url: "{{ onhere }}"
+      user: "{{ usingthis }}"
+      password: "{{ andthis }}"
+      method: POST
+#      body: "{\"action\":\"DeviceRouter\",\"method\":\"addDevice\",\"data\":[{{ data }}], \"tid\":1}"
+      body:
+      - action: DeviceRouter
+        method: addDevice
+        data:
+        - deviceName: "{{ item }}"
+          deviceClass: "/Server/Linux/Openshift/Workers"
+          collector: localhost
+          model: true
+          title: ""
+          productionState: 1000
+          priority: 3
+          snmpCommunity: RTO
+          snmpPort: 161
+          tag: ""
+          rackSlot: "aws"
+          serialNumber: "0"
+          hwManufacturer: "aws"
+          hwProductName: "aws"
+          osManufacturer: "Redhat"
+          osProductName: "Redhat"
+          comments: "added by ansible"
+        tid: 1
+      force_basic_auth: yes
+      status_code: 200
+      body_format: json
+    loop: "{{ workers }}"

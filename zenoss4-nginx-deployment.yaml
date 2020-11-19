@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: /usr/local/bin/kompose convert -f docker-compose.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: zenoss4-nginx
+  name: zenoss4-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: zenoss4-nginx
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: /usr/local/bin/kompose convert -f docker-compose.yml
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/dockerzenoss4_back-tier: "true"
+        io.kompose.network/dockerzenoss4_front-tier: "true"
+        io.kompose.service: zenoss4-nginx
+    spec:
+      containers:
+      - image: nginx:alpine
+        imagePullPolicy: ""
+        name: zenoss4-nginx
+        ports:
+        - containerPort: 80
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/nginx/conf.d/
+          name: nginx-config
+          readOnly: true
+#        - mountPath: /etc/nginx/conf.d/
+#          name: zenoss4-nginx-claim0
+#          readOnly: true
+#        - mountPath: /var/run/
+#          name: zenoss4-nginx-claim1
+#          readOnly: false
+      hostname: zenoss4-nginx
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+#      - name: zenoss4-nginx-claim0
+#        persistentVolumeClaim:
+#          claimName: zenoss4-nginx-claim0
+#          readOnly: false
+#      - name: zenoss4-nginx-claim1
+#        persistentVolumeClaim:
+#          claimName: zenoss4-nginx-claim1
+#          readOnly: false
+      - configMap:
+          defaultMode: 420
+          name: nginx-config
+        name: nginx-config
+status: {}
