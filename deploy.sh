@@ -24,20 +24,20 @@ oc adm policy add-scc-to-user anyuid -z default
 
 echo
 echo "** creating volume claims"
-for i in *claim*yaml; do echo working on $i ; oc apply -f $i ; done ;
+for i in objects/*claim*yaml; do echo working on $i ; oc apply -f $i ; done ;
 sleep 5
 
 echo
 echo "** creating configuration files"
-for i in *configmap*yaml; do echo working on $i ; oc apply -f $i ; done ;
+for i in objects/*configmap*yaml; do echo working on $i ; oc apply -f $i ; done ;
 
 echo
 echo "** deploying containers/pods"
-for i in *deployment*yaml; do echo working on $i ; oc apply -f $i ; done ;
+for i in objects/*deployment*yaml; do echo working on $i ; oc apply -f $i ; done ;
 
 echo
 echo "** mapping services to pods"
-for i in *service*yaml; do echo working on $i ; oc apply -f $i ; done ;
+for i in objects/*service*yaml; do echo working on $i ; oc apply -f $i ; done ;
 
 echo
 echo "** exposing a route to the nginx frontend"
