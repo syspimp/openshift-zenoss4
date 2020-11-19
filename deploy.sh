@@ -8,6 +8,9 @@ set -e
 
 . variables.conf
 
+echo "** if you get errors with thee oc client, try export KUBECONFIG=blah/blah/kubeconfig or logging into ocp with the oc binary"
+sleep 5
+
 which oc >/dev/null 2>/dev/null
 if [[ $? -ne 0 ]]
 then
