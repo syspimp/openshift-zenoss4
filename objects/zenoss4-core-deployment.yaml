@@ -32,8 +32,14 @@ spec:
         ports:
         - containerPort: 8080
         resources: {}
+        volumeMounts:
+        - mountPath: /opt/zenoss/perf
+          name: zenoss4-core-optzenossperf
       hostname: zenoss4-core
       restartPolicy: Always
       serviceAccountName: ""
-      volumes: null
+      volumes:
+      - name: zenoss4-core-optzenossperf
+        persistentVolumeClaim:
+          claimName: zenoss4-core-optzenossperf
 status: {}
