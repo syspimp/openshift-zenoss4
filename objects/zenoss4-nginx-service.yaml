@@ -14,7 +14,7 @@ spec:
   - name: "80"
     protocol: TCP
     port: 80
-    nodePort: 80
+    nodePort: 30080
   selector:
     io.kompose.service: zenoss4-nginx
 status:
