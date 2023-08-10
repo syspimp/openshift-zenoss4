@@ -27,7 +27,7 @@ spec:
         io.kompose.service: zenoss4-nginx
     spec:
       containers:
-      - image: nginx:alpine
+      - image: docker.io/nginx:alpine
         imagePullPolicy: ""
         name: zenoss4-nginx
         ports:

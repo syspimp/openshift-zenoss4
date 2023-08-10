@@ -26,7 +26,7 @@ spec:
         io.kompose.service: zenoss4-redis
     spec:
       containers:
-      - image: redis:3.0-alpine
+      - image: docker.io/redis:3.0-alpine
         imagePullPolicy: ""
         name: zenoss4-redis
         ports:

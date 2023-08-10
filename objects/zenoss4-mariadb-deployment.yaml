@@ -29,8 +29,8 @@ spec:
       - env:
         - name: MYSQL_ROOT_PASSWORD
           value: zenoss
-        #image: mariadb:5.5
-        image: syspimp/zenoss4-mariadb:latest
+        #image: docker.io/mariadb:5.5
+        image: docker.io/syspimp/zenoss4-mariadb:latest
         imagePullPolicy: ""
         name: zenoss4-mariadb
         ports:

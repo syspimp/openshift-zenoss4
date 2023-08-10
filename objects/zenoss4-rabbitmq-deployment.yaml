@@ -33,7 +33,7 @@ spec:
           value: zenoss
         - name: RABBITMQ_DEFAULT_VHOST
           value: /zenoss
-        image: rabbitmq:3.6
+        image: docker.io/rabbitmq:3.6
         imagePullPolicy: ""
         name: zenoss4-rabbitmq
         ports:

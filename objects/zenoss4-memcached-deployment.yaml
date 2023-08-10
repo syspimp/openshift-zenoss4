@@ -25,7 +25,7 @@ spec:
         io.kompose.service: zenoss4-memcached
     spec:
       containers:
-      - image: memcached:1.4-alpine
+      - image: docker.io/memcached:1.4-alpine
         imagePullPolicy: ""
         name: zenoss4-memcached
         ports:

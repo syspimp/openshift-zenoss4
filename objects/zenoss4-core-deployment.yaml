@@ -25,8 +25,8 @@ spec:
         io.kompose.service: zenoss4-core
     spec:
       containers:
-#      - image: mcroth/docker-zenoss4
-      - image: syspimp/zenoss4-core
+#      - image: docker.io/mcroth/docker-zenoss4
+      - image: docker.io/syspimp/zenoss4-core
         imagePullPolicy: ""
         name: zenoss4-core
         ports:
